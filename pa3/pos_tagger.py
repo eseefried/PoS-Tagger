@@ -1,6 +1,3 @@
-# CS542 Fall 2021 Homework 3
-# Part-of-speech Tagging with Structured Perceptrons
-
 import os
 import numpy as np
 from collections import defaultdict
@@ -42,12 +39,23 @@ class POSTagger():
                     # BEGIN STUDENT CODE
                     # create vocabularies of every tag and word
                     #  that exists in the training data
+                    for line in f:
+                        for word in line.split():
+                            i =  max(index for index, item in enumerate(word) if item == '/')
+                            current_word = word[0:i]
+                            current_tag = word[i+1:]
+                            if current_tag not in tag_vocabulary:
+                                tag_vocabulary.add(current_tag)
+                            if current_word not in word_vocabulary:
+                                word_vocabulary.add(current_word)     
                     # END STUDENT CODE
-                    pass # remove pass keyword when finished
+                    # remove pass keyword when finished
         # create tag_dict and word_dict
         # if you implemented the rest of this
         #  function correctly, these should be formatted
         #  as they are above in __init__
+        # print(word_vocabulary)
+        # print(tag_vocabulary)
         self.tag_dict = {v: k for k, v in enumerate(tag_vocabulary)}
         self.word_dict = {v: k for k, v in enumerate(word_vocabulary)}
 
@@ -74,8 +82,12 @@ class POSTagger():
                     #  2) create the sentence ID, add it to sentence_ids
                     #  3) add this sentence's tag list to tag_lists and word
                     #     list to word_lists
+                    sentance_i = 0
+                    for line in f:
+                        for word in line.split():
+                            print(word)
                     # END STUDENT CODE
-                    pass # remove pass keyword when finished
+                     # remove pass keyword when finished
         return sentence_ids, sentences, tag_lists, word_lists
 
     '''
@@ -194,7 +206,8 @@ if __name__ == '__main__':
     pos.train('data_small/train') # train: toy data
     #pos.train('brown_news/train') # train: news data only
     #pos.train('brown/train') # train: full data
-    sentences, results = pos.test('data_small/test') # test: toy data
+    # sentences, results = pos.test('data_small/test') # test: toy data
     #sentences, results = pos.test('brown_news/dev') # test: news data only
     #sentences, results = pos.test('brown/dev') # test: full data
-    print('\nAccuracy:', pos.evaluate(sentences, results))
+    # print('\nAccuracy:', pos.evaluate(sentences, results))
+    
