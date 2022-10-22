@@ -54,8 +54,6 @@ class POSTagger():
         # if you implemented the rest of this
         #  function correctly, these should be formatted
         #  as they are above in __init__
-        # print(word_vocabulary)
-        # print(tag_vocabulary)
         self.tag_dict = {v: k for k, v in enumerate(tag_vocabulary)}
         self.word_dict = {v: k for k, v in enumerate(word_vocabulary)}
 
@@ -82,10 +80,39 @@ class POSTagger():
                     #  2) create the sentence ID, add it to sentence_ids
                     #  3) add this sentence's tag list to tag_lists and word
                     #     list to word_lists
-                    sentance_i = 0
+                    sentance_id = 0
+                
                     for line in f:
+                        sen = name + str(sentance_id)
+                        sentence_ids.append(sen)
+                        sentences[sen] = None
+                        tags = []
+                        words = []
                         for word in line.split():
-                            print(word)
+                            # sentences[sen] += word
+                            j =  max(index for index, item in enumerate(word) if item == '/')
+                            current_word = word[0:j]
+                            current_tag = word[j+1:]
+                            
+                            if current_word not in self.word_dict:
+                                words.append(self.unk_index)
+                            else:
+                                words.append(self.word_dict[current_word])
+                            
+                            if current_tag not in self.tag_dict:
+                                tags.append(self.unk_index)
+                            else:
+                                tags.append(self.tag_dict[current_tag])
+                            
+                            if sentences[sen] == None:
+                                sentences.update({sen: word})
+            
+                            else:
+                                sentences.update({sen: sentences[sen] + ' ' + word})
+                            if word[-1] == '.':
+                                sentance_id += 1
+                        tag_lists.update({sen: tags})
+                        word_lists.update({sen: words})
                     # END STUDENT CODE
                      # remove pass keyword when finished
         return sentence_ids, sentences, tag_lists, word_lists
@@ -104,6 +131,7 @@ class POSTagger():
         # initialization step
         #  fill out first column of viterbi trellis
         #  with initial + emission weights of the first observation
+        v[:,1] = self.initial + self.emission[sentence]
         # recursion step
         #  1) fill out the t-th column of viterbi trellis
         #  with the max of the t-1-th column of trellis
@@ -111,9 +139,14 @@ class POSTagger():
         #  + emission weights of t-th observateion
         #  2) fill out the t-th column of the backpointer trellis
         #  with the associated argmax values
+        for t in range(2,T):
+            v[:,t] = np.max(v[:,t-1]) + self.transition + self.emission
+            backpointer[:,t] = np.argmax(v[:,t-1]) + self.transition + self.emission
+            
         # termination step
         #  1) get the most likely ending state, insert it into best_path
         #  2) fill out best_path from backpointer trellis
+        best_path_prob = max(v[:,T])
         # END STUDENT CODE
         return best_path
 
