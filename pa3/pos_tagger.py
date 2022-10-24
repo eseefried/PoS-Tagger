@@ -131,7 +131,7 @@ class POSTagger():
         # initialization step
         #  fill out first column of viterbi trellis
         #  with initial + emission weights of the first observation
-        v[:,1] = self.initial + self.emission[sentence]
+        v[:,0] = self.initial + self.emission[sentence[0]]
         # recursion step
         #  1) fill out the t-th column of viterbi trellis
         #  with the max of the t-1-th column of trellis
@@ -139,15 +139,18 @@ class POSTagger():
         #  + emission weights of t-th observateion
         #  2) fill out the t-th column of the backpointer trellis
         #  with the associated argmax values
-        for t in range(2,T):
-            v[:,t] = np.max(v[:,t-1]) + self.transition + self.emission
-            backpointer[:,t] = np.argmax(v[:,t-1]) + self.transition + self.emission
-            
+        for t in range(1,T):
+            v[:,t] = np.max(v[:,t-1]) + self.transition[:,t-1] + self.emission[sentence[t]]
+            backpointer[:,t] = np.argmax(v[:,t-1])  + self.transition[:,t-1] + self.emission[sentence[t]]
+           
+        print(backpointer) 
         # termination step
         #  1) get the most likely ending state, insert it into best_path
         #  2) fill out best_path from backpointer trellis
-        best_path_prob = max(v[:,T])
+        # print(v[:,T])
+        # best_path_prob = max(v[:,T])
         # END STUDENT CODE
+        # print(backpointer, 'meow')
         return best_path
 
     '''
