@@ -140,17 +140,20 @@ class POSTagger():
         #  2) fill out the t-th column of the backpointer trellis
         #  with the associated argmax values
         for t in range(1,T):
-            v[:,t] = np.max(v[:,t-1]) + self.transition[:,t-1] + self.emission[sentence[t]]
-            backpointer[:,t] = np.argmax(v[:,t-1])  + self.transition[:,t-1] + self.emission[sentence[t]]
+            v[:,t] = np.max(v[:,t-1] + self.transition[:,t-1] + self.emission[sentence[t]])
+            backpointer[:,t] = np.argmax(v[:,t-1]  + self.transition[:,t-1] + self.emission[sentence[t]])
            
         print(backpointer) 
         # termination step
         #  1) get the most likely ending state, insert it into best_path
+        best_path.append(np.argmax(v[:,-1]))
+        for i in range(1,len(backpointer)+1):
+            best_path.append(backpointer[best_path[i-1], i]) 
+        best_path.reverse()
         #  2) fill out best_path from backpointer trellis
         # print(v[:,T])
         # best_path_prob = max(v[:,T])
         # END STUDENT CODE
-        # print(backpointer, 'meow')
         return best_path
 
     '''
