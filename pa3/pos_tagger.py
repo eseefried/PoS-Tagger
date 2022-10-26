@@ -123,6 +123,7 @@ class POSTagger():
     '''
     def viterbi(self, sentence):
         T = len(sentence)
+        print(len(sentence))
         N = len(self.tag_dict)
         v = np.zeros((N, T))
         backpointer = np.zeros((N, T), dtype=int)
@@ -132,9 +133,10 @@ class POSTagger():
         #  fill out first column of viterbi trellis
         #  with initial + emission weights of the first observation
         v[:,0] = self.initial + self.emission[sentence[0]]
+        # print(v[:,0])
         # recursion step
         #  1) fill out the t-th column of viterbi trellis
-        #  with the max of the t-1-th column of trellis
+        #  with the max of the t-1-th column of trellisp
         #  + transition weights to each state
         #  + emission weights of t-th observateion
         #  2) fill out the t-th column of the backpointer trellis
@@ -142,12 +144,12 @@ class POSTagger():
         for t in range(1,T):
             v[:,t] = np.max(v[:,t-1] + self.transition[:,t-1] + self.emission[sentence[t]])
             backpointer[:,t] = np.argmax(v[:,t-1]  + self.transition[:,t-1] + self.emission[sentence[t]])
-           
-        print(backpointer) 
+        # print(backpointer) 
         # termination step
         #  1) get the most likely ending state, insert it into best_path
         best_path.append(np.argmax(v[:,-1]))
-        for i in range(1,len(backpointer)+1):
+        for i in range(1,N):
+            print(i)
             best_path.append(backpointer[best_path[i-1], i]) 
         best_path.reverse()
         #  2) fill out best_path from backpointer trellis
@@ -174,11 +176,25 @@ class POSTagger():
             word_lists = dummy_data[3]
         for i, sentence_id in enumerate(sentence_ids):
             # BEGIN STUDENT CODE
-            # get the word sequence for this sentence and the correct tag sequence
+             # get the word sequence for this sentence and the correct tag sequence
+            current_tags = tag_lists[sentence_id]
+            current_words = word_lists[sentence_id]
             # use viterbi to predict
+            predictions = self.viterbi(current_words)
+            # print(predictions[0] - current_tags[0])
+            print(predictions, 'pred')
+            print(current_tags, 'tags')
             # if mistake
             #  promote weights that appear in correct sequence
             #  demote weights that appear in (incorrect) predicted sequence
+            if predictions != current_tags:
+                for i in range(len(current_tags) - 1):
+                    if current_tags[i] == predictions[i]:
+                        self.transition[current_tags[i]] += 1 
+                        self.emission[current_words[i]] += 1 
+                    elif current_tags[i] != predictions[i]:
+                        self.transition[current_tags[i]] -= 1 
+                        self.emission[current_words[i]] -= 1 
             # END STUDENT CODE
             if (i + 1) % 1000 == 0 or i + 1 == len(sentence_ids):
                 print(i + 1, 'training sentences tagged')
