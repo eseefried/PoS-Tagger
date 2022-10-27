@@ -123,7 +123,6 @@ class POSTagger():
     '''
     def viterbi(self, sentence):
         T = len(sentence)
-        print(len(sentence))
         N = len(self.tag_dict)
         v = np.zeros((N, T))
         backpointer = np.zeros((N, T), dtype=int)
@@ -133,6 +132,7 @@ class POSTagger():
         #  fill out first column of viterbi trellis
         #  with initial + emission weights of the first observation
         v[:,0] = self.initial + self.emission[sentence[0]]
+
         # print(v[:,0])
         # recursion step
         #  1) fill out the t-th column of viterbi trellis
@@ -141,15 +141,20 @@ class POSTagger():
         #  + emission weights of t-th observateion
         #  2) fill out the t-th column of the backpointer trellis
         #  with the associated argmax values
+        emis_w = 0
+        print(sentence)
         for t in range(1,T):
-            v[:,t] = np.max(v[:,t-1] + self.transition[:,t-1] + self.emission[sentence[t]])
-            backpointer[:,t] = np.argmax(v[:,t-1]  + self.transition[:,t-1] + self.emission[sentence[t]])
-        # print(backpointer) 
+            if sentence[t] != -1:
+                emis_w = self.emission[sentence[t]]
+            v[:,t] = np.max(v[:,t-1] + self.transition + emis_w)
+            backpointer[:,t] = np.argmax(v[:,t-1]  + self.transition + emis_w)
         # termination step
         #  1) get the most likely ending state, insert it into best_path
+        print(backpointer, 'back')
         best_path.append(np.argmax(v[:,-1]))
         for i in range(1,N):
-            print(i)
+            print(best_path[i-1])
+            print(backpointer[best_path[i-1],i])
             best_path.append(backpointer[best_path[i-1], i]) 
         best_path.reverse()
         #  2) fill out best_path from backpointer trellis
