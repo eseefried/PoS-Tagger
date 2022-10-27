@@ -211,6 +211,15 @@ class POSTagger():
         for i, sentence_id in enumerate(sentence_ids):
             # BEGIN STUDENT CODE
             # should be very similar to train function before mistake check
+            current_tags = tag_lists[sentence_id]
+            current_words = word_lists[sentence_id]
+            # use viterbi to predict
+            # results[sentence id][‘correct’] = correct sequence of tags
+           # results[sentence id][‘predicted’] = predicted sequence of tags
+            predictions = self.viterbi(current_words)
+            results[sentence_id]['correct'] = current_tags
+            results[sentence_id]['predicted'] = predictions
+            
             # END STUDENT CODE
             if (i + 1) % 1000 == 0 or i + 1 == len(sentence_ids):
                 print(i + 1, 'testing sentences tagged')
