@@ -131,7 +131,6 @@ class POSTagger():
         backpointer[:,0] = -1
         v[:,0] = self.initial + self.emission[sentence[0]]
         emis_w = 0
-        print(T)
         for t in range(1,T):
             if sentence[t] != -1:
                 emis_w = self.emission[sentence[t]]
@@ -175,8 +174,6 @@ class POSTagger():
             # use viterbi to predict
             predictions = self.viterbi(current_words)
             # print(predictions[0] - current_tags[0])
-            print(predictions, 'pred')
-            print(current_tags, 'tags')
             # if mistake
             #  promote weights that appear in correct sequence
             #  demote weights that appear in (incorrect) predicted sequence
@@ -190,7 +187,7 @@ class POSTagger():
                         self.transition[current_tags[i-1], current_tags[i]] += 1 
                         self.emission[current_words[i] , current_tags[i]] += 1 
                     elif current_tags[i] != predictions[i]:
-                        self.transition[current_tags[i-1],current_tags[i]] -= 1 
+                        self.transition[predictions[i-1],predictions[i]] -= 1
                         self.emission[current_words[i], current_tags[i]] -= 1 
             # END STUDENT CODE
             if (i + 1) % 1000 == 0 or i + 1 == len(sentence_ids):
