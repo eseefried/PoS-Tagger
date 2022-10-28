@@ -5,6 +5,8 @@ from collections import defaultdict
 import random
 from random import Random
 
+from sympy import jacobi
+
 class POSTagger():
 
     def __init__(self):
@@ -131,18 +133,19 @@ class POSTagger():
         backpointer[:,0] = -1
         v[:,0] = self.initial + self.emission[sentence[0]]
         emis_w = 0
+        print(T)
         for t in range(1,T):
             if sentence[t] != -1:
                 emis_w = self.emission[sentence[t]]
             v[:,t] = np.amax(v[:,t-1] + self.transition + emis_w, axis=1)
             backpointer[:,t] = np.argmax(v[:,t-1]  + self.transition + emis_w, axis =1)
-           
+
         # termination step
         #  1) get the most likely ending state, insert it into best_path
 
         best_path.append(np.argmax(v[:,-1]))
         for i in range(1,T):
-            best_path.append(backpointer[best_path[i-1], i]) 
+            best_path.append(backpointer[best_path[i-1], T-i])
         best_path.reverse()
         #  2) fill out best_path from backpointer trellis
         # print(v[:,T])
@@ -171,24 +174,24 @@ class POSTagger():
              # get the word sequence for this sentence and the correct tag sequence
             current_tags = tag_lists[sentence_id]
             current_words = word_lists[sentence_id]
+            print(current_tags)
             # use viterbi to predict
             predictions = self.viterbi(current_words)
+            print(predictions, 'preds')
             # print(predictions[0] - current_tags[0])
             # if mistake
             #  promote weights that appear in correct sequence
             #  demote weights that appear in (incorrect) predicted sequence
             if predictions != current_tags:
-                if current_tags[i] == predictions[i]:
-                    self.initial[current_tags[i]] +=1
-                else:
-                    self.initial[current_tags[i]] -=1
-                for i in range(1, len(current_tags)):
-                    if current_tags[i] == predictions[i]:
-                        self.transition[current_tags[i-1], current_tags[i]] += 1 
-                        self.emission[current_words[i] , current_tags[i]] += 1 
-                    elif current_tags[i] != predictions[i]:
-                        self.transition[predictions[i-1],predictions[i]] -= 1
-                        self.emission[current_words[i], current_tags[i]] -= 1 
+                self.initial[current_tags[0]] +=1
+                self.initial[predictions[0]] -=1
+                self.emission[current_words[0], current_tags[0]] += 1
+                self.emission[current_words[0], predictions[0]] -= 1 
+                for j in range(1, len(current_tags)):
+                    self.transition[current_tags[j-1], current_tags[j]] += 1 
+                    self.emission[current_words[j] , current_tags[j]] += 1 
+                    self.transition[predictions[j-1],predictions[j]] -= 1
+                    self.emission[current_words[j], predictions[j]] -= 1 
             # END STUDENT CODE
             if (i + 1) % 1000 == 0 or i + 1 == len(sentence_ids):
                 print(i + 1, 'training sentences tagged')
