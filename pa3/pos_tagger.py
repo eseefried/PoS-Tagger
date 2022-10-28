@@ -1,11 +1,10 @@
 import os
-from turtle import back
 import numpy as np
 from collections import defaultdict
 import random
 from random import Random
 
-from sympy import jacobi
+
 
 class POSTagger():
 
@@ -133,12 +132,12 @@ class POSTagger():
         backpointer[:,0] = -1
         v[:,0] = self.initial + self.emission[sentence[0]]
         emis_w = 0
-        print(T)
+        
         for t in range(1,T):
             if sentence[t] != -1:
                 emis_w = self.emission[sentence[t]]
-            v[:,t] = np.amax(v[:,t-1] + self.transition + emis_w, axis=1)
-            backpointer[:,t] = np.argmax(v[:,t-1]  + self.transition + emis_w, axis =1)
+            v[:,t] = np.amax(v[:,t-1] + (self.transition + emis_w).T, axis=1)
+            backpointer[:,t] = np.argmax(v[:,t-1]  + (self.transition + emis_w).T, axis =1)
 
         # termination step
         #  1) get the most likely ending state, insert it into best_path
@@ -174,10 +173,9 @@ class POSTagger():
              # get the word sequence for this sentence and the correct tag sequence
             current_tags = tag_lists[sentence_id]
             current_words = word_lists[sentence_id]
-            print(current_tags)
             # use viterbi to predict
             predictions = self.viterbi(current_words)
-            print(predictions, 'preds')
+    
             # print(predictions[0] - current_tags[0])
             # if mistake
             #  promote weights that appear in correct sequence
@@ -214,14 +212,14 @@ class POSTagger():
         for i, sentence_id in enumerate(sentence_ids):
             # BEGIN STUDENT CODE
             # should be very similar to train function before mistake check
-            current_tags = tag_lists[sentence_id]
-            current_words = word_lists[sentence_id]
+            # current_tags = tag_lists[sentence_id]
+            # current_words = word_lists[sentence_id]
             # use viterbi to predict
             # results[sentence id][‘correct’] = correct sequence of tags
            # results[sentence id][‘predicted’] = predicted sequence of tags
-            predictions = self.viterbi(current_words)
-            results[sentence_id]['correct'] = current_tags
-            results[sentence_id]['predicted'] = predictions
+            # predictions = self.viterbi(current_words)
+            # results[sentence_id]['correct'] = current_tags
+            # results[sentence_id]['predicted'] = predictions
             
             # END STUDENT CODE
             if (i + 1) % 1000 == 0 or i + 1 == len(sentence_ids):
