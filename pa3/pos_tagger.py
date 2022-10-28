@@ -125,27 +125,31 @@ class POSTagger():
     '''
     def viterbi(self, sentence):
         T = len(sentence)
+        print(sentence)
         N = len(self.tag_dict)
         v = np.zeros((N, T))
         backpointer = np.zeros((N, T), dtype=int)
         best_path = []
-        backpointer[:,0] = -1
-        v[:,0] = self.initial + self.emission[sentence[0]]
-        emis_w = 0
         
-        for t in range(1,T):
-            if sentence[t] != -1:
-                emis_w = self.emission[sentence[t]]
-            v[:,t] = np.amax(v[:,t-1] + (self.transition + emis_w).T, axis=1)
-            backpointer[:,t] = np.argmax(v[:,t-1]  + (self.transition + emis_w).T, axis =1)
+        if len(sentence) != 0:
+            
+            backpointer[:,0] = -1
+            v[:,0] = self.initial + self.emission[sentence[0]]
+            emis_w = 0
+            
+            for t in range(1,T):
+                if sentence[t] != -1:
+                    emis_w = self.emission[sentence[t]]
+                v[:,t] = np.amax(v[:,t-1] + (self.transition + emis_w).T, axis=1)
+                backpointer[:,t] = np.argmax(v[:,t-1]  + (self.transition + emis_w).T, axis =1)
 
-        # termination step
-        #  1) get the most likely ending state, insert it into best_path
+            # termination step
+            #  1) get the most likely ending state, insert it into best_path
 
-        best_path.append(np.argmax(v[:,-1]))
-        for i in range(1,T):
-            best_path.append(backpointer[best_path[i-1], T-i])
-        best_path.reverse()
+            best_path.append(np.argmax(v[:,-1]))
+            for i in range(1,T):
+                best_path.append(backpointer[best_path[i-1], T-i])
+            best_path.reverse()
         #  2) fill out best_path from backpointer trellis
         # print(v[:,T])
         # best_path_prob = max(v[:,T])
@@ -212,14 +216,12 @@ class POSTagger():
         for i, sentence_id in enumerate(sentence_ids):
             # BEGIN STUDENT CODE
             # should be very similar to train function before mistake check
-            # current_tags = tag_lists[sentence_id]
-            # current_words = word_lists[sentence_id]
-            # use viterbi to predict
-            # results[sentence id][‘correct’] = correct sequence of tags
-           # results[sentence id][‘predicted’] = predicted sequence of tags
-            # predictions = self.viterbi(current_words)
-            # results[sentence_id]['correct'] = current_tags
-            # results[sentence_id]['predicted'] = predictions
+            current_tags = tag_lists[sentence_id]
+            current_words = word_lists[sentence_id]
+            #use viterbi to predict
+            predictions = self.viterbi(current_words)
+            results[sentence_id]['correct'] = current_tags
+            results[sentence_id]['predicted'] = predictions
             
             # END STUDENT CODE
             if (i + 1) % 1000 == 0 or i + 1 == len(sentence_ids):
@@ -236,7 +238,18 @@ class POSTagger():
             self.sample_results(sentences, results)
         accuracy = 0.0
         # BEGIN STUDENT CODE
+        num_words = 0
+        incorrect = 0
         # for each sentence, how many words were correctly tagged out of the total words in that sentence?
+        for r in results:
+            num_words += len(results[r]['correct'])
+            i = 0
+            for i in range(len(results[r]['correct'])):
+                if results[r]['predicted'][i] != results[r]['correct'][i]:
+                    incorrect += 1
+                    
+        accuracy = (num_words - incorrect) / num_words
+             
         # END STUDENT CODE
         return accuracy
         
@@ -262,11 +275,12 @@ class POSTagger():
 if __name__ == '__main__':
     pos = POSTagger()
     # make sure these point to the right directories
-    pos.train('data_small/train') # train: toy data
+    #pos.train('data_small/train') # train: toy data
     #pos.train('brown_news/train') # train: news data only
-    #pos.train('brown/train') # train: full data
-    # sentences, results = pos.test('data_small/test') # test: toy data
+    pos.train('brown/train') # train: full data
+    #sentences, results = pos.test('data_small/test') # test: toy data
     #sentences, results = pos.test('brown_news/dev') # test: news data only
-    #sentences, results = pos.test('brown/dev') # test: full data
-    # print('\nAccuracy:', pos.evaluate(sentences, results))
+    sentences, results = pos.test('brown/dev') # test: full data
+    print('\nAccuracy:', pos.evaluate(sentences, results))
     
+
